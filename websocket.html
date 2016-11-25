@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+   <head>
+
+      <script type="text/javascript">
+        var WebSocketClient = (function () {
+
+            var exports = {};
+            var is_connected = false;
+            var ws = null;
+
+            exports.init = function(url) {
+
+                if (!WebSocket in window){
+                    throw "WebSocket NOT supported by your Browser!"
+                }
+
+                if(ws) {
+                    ws.close();
+                }
+
+                ws = new WebSocket(url);
+                ws.onopen = function() {
+                    is_connected = true;
+                    if(exports.onOpen){
+                       exports.onOpen();
+                    }
+                };
+
+                ws.onmessage = function (evt) {
+                    var msg = evt.data;
+
+                    if(exports.onMessage) {
+                        exports.onMessage(msg);
+                    }
+                };
+
+                ws.onerror = function (err) {
+                    is_connected = false;
+                    console.log(err);
+                };
+
+                ws.onclose = function() {
+                    is_connected = false;
+                    console.log("Connection is closed...");
+                };
+
+            }
+
+            exports.sendMessage = function (msg) {
+                if (is_connected) {
+                    ws.send(msg);
+                } else {
+                    alert("Not connected!");
+                }
+            };
+
+            exports.onMessage = null;
+            exports.onOpen = null;
+            return exports;
+        }());
+
+      </script>
+
+   </head>
+   <body>
+
+      <div id="sse">
+         <a href="javascript:WebSocketClient.init('ws://localhost:8088/echo')">Run WebSocket</a>
+      </div>
+      <div>
+        <textarea id="text-echo" rows="10" cols="60" readonly></textarea>
+      </div>
+      <div>
+        <textarea id="text" rows="10" cols="60"></textarea>
+      </div>
+
+      <button id="send" value="send">Send</button>
+      <script type="text/javascript">
+            WebSocketClient.onOpen = function()
+            {
+                var msg = "The quick brown fox jumps over the lazy dog";
+                WebSocketClient.sendMessage(msg);
+                console.log("Message is sent: " + msg);
+            }
+
+            WebSocketClient.onMessage = function(msg) {
+                console.log("Message is received:", msg);
+                document.getElementById("text-echo").value += "\n" + msg;
+            }
+
+            document.getElementById("send").onclick = function() {
+                var text = document.getElementById("text").value;
+                if(text.length > 0) {
+                    console.log("text.length: ",text.length);
+                    WebSocketClient.sendMessage(text);
+                }
+            };
+      </script>
+   </body>
+</html>

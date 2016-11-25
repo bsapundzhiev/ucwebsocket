@@ -1,0 +1,9 @@
+base64.o main.o sha1.o websocket.o
+websocket
+test
+/wsocket
+*.o
+/ucwebsocket.suo
+/ucwebsocket.vcxproj.filters
+/ucwebsocket.vcxproj.user
+/Debug/
