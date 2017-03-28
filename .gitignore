@@ -7,3 +7,4 @@ test
 /ucwebsocket.vcxproj.filters
 /ucwebsocket.vcxproj.user
 /Debug/
+*.out
