@@ -50,9 +50,9 @@ enum wsState {
 };
 
 struct http_header {
-  char *method;
-  char *uri;
-  char *key;
+  char method[4];
+  char uri[128];
+  char key[32];
   unsigned char version;
   unsigned char upgrade;
   unsigned char websocket;
@@ -72,7 +72,6 @@ struct ws_frame {
 
 void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len);
 void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int *out_len);
-void ws_http_header_free(struct http_header *header);
 
 void ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len);
 void ws_create_frame(struct ws_frame *frame, uint8_t *out_data, int *out_len);

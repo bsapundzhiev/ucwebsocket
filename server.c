@@ -81,8 +81,7 @@ void client_handler(struct fds *client)
 
     int frameSize = BUF_LEN;
 
-    if(!client->readedLength)
-    {
+    if(!client->readedLength) {
         client->readedLength = recv(client->fd, client->buffer, BUF_LEN, 0);
     }
 
@@ -95,99 +94,95 @@ void client_handler(struct fds *client)
     assert(client->readedLength <= BUF_LEN);
 
     switch(client->state) {
-        case CONNECTING:
+    case CONNECTING:
 
-            ws_http_parse_handsake_header(&client->hdr, client->buffer, client->readedLength);
-            ws_get_handshake_header(&client->hdr, client->buffer, &frameSize);
+        ws_http_parse_handsake_header(&client->hdr, client->buffer, client->readedLength);
+        ws_get_handshake_header(&client->hdr, client->buffer, &frameSize);
 
-            if (client->hdr.type != WS_OPENING_FRAME) {
-                send_buff(client->fd, client->buffer, frameSize);
-                client_close(client);
-                ws_http_header_free(&client->hdr);
-                return;
-            } else {
-
-                if (strcmp(client->hdr.uri, "/echo") != 0) {
-                    frameSize = sprintf((char *)client->buffer, "HTTP/1.1 404 Not Found\r\n\r\n");
-                    send_buff(client->fd, client->buffer, frameSize);
-                    client->state = CLOSING;
-                    break;
-                }
-
-                ws_http_header_free(&client->hdr);
-                if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {
-                    return;
-                }
-                client->state = OPEN;
-                client->readedLength = 0;
-            }
-            break;
-
-        case OPEN:
-            ws_parse_frame(&client->fr, client->buffer, client->readedLength);
-            printf("fr.type 0x%X\n", client->fr.type);
-
-            if (client->fr.type == WS_TEXT_FRAME) {
-                client->fr.payload[client->fr.payload_length] = 0;
-
-                printf("Payload '%s'\n", client->fr.payload);
-                printf("make frame '%s' len %d \n", client->fr.payload, client->fr.payload_length);
-
-                ws_create_text_frame((char*)client->fr.payload, client->buffer, &frameSize);
-                if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {
-                    perror("send");
-                    exit(-1);
-                }
-                client->readedLength = 0;
-            }
-            if(client->fr.type == WS_CLOSING_FRAME) {
-                client->state = CLOSING;
-            }
-            break;
-
-        case CLOSING:
-            printf("Close frame!\n");
-            ws_create_closing_frame(client->buffer, &frameSize);
+        if (client->hdr.type != WS_OPENING_FRAME) {
             send_buff(client->fd, client->buffer, frameSize);
-            client->state = CLOSED;
-
-        case CLOSED:
-            printf("Frame closed\n");
             client_close(client);
+
             return;
-        default:
-            printf("Unknown state!");
-            exit(-1);
-            break;
+        } else {
+
+            if (strcmp(client->hdr.uri, "/echo") != 0) {
+                frameSize = sprintf((char *)client->buffer, "HTTP/1.1 404 Not Found\r\n\r\n");
+                send_buff(client->fd, client->buffer, frameSize);
+                client->state = CLOSING;
+                break;
+            }
+
+            if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {
+                return;
+            }
+            client->state = OPEN;
+            client->readedLength = 0;
         }
+        break;
+
+    case OPEN:
+        ws_parse_frame(&client->fr, client->buffer, client->readedLength);
+        printf("fr.type 0x%X\n", client->fr.type);
+
+        if (client->fr.type == WS_TEXT_FRAME) {
+            client->fr.payload[client->fr.payload_length] = 0;
+
+            printf("Payload '%s'\n", client->fr.payload);
+            printf("make frame '%s' len %d \n", client->fr.payload, client->fr.payload_length);
+
+            ws_create_text_frame((char*)client->fr.payload, client->buffer, &frameSize);
+            if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {
+                perror("send");
+                exit(-1);
+            }
+            client->readedLength = 0;
+        }
+        if(client->fr.type == WS_CLOSING_FRAME) {
+            client->state = CLOSING;
+        }
+        break;
+
+    case CLOSING:
+        printf("Close frame!\n");
+        ws_create_closing_frame(client->buffer, &frameSize);
+        send_buff(client->fd, client->buffer, frameSize);
+        client->state = CLOSED;
+
+    case CLOSED:
+        printf("Frame closed\n");
+        client_close(client);
+        return;
+    default:
+        printf("Unknown state!");
+        exit(-1);
+        break;
+    }
 
 }
 
-int main(int argc , char *argv[])
+int main(int argc, char *argv[])
 {
     int opt = TRUE;
-    int master_socket , addrlen , new_socket , activity, i , sd;
+    int master_socket, addrlen, new_socket, activity, i, sd;
     int max_sd;
     struct sockaddr_in address;
 
     fd_set readfds;
 
-    for (i = 0; i < MAX_FD; i++)
-    {
+    for (i = 0; i < MAX_FD; i++) {
         client_socket[i].fd = 0;
         client_socket[i].state = CONNECTING;
     }
 
     //create a master socket
-    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
-    {
+    if( (master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
     //set master socket to allow multiple connections , this is just a good habit, it will work without this
-    if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 )
-    {
+    if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
@@ -196,16 +191,14 @@ int main(int argc , char *argv[])
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
 
-    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
-    {
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
     printf("Listener on port %d \n", PORT);
 
     //try to specify maximum of 3 pending connections for the master socket
-    if (listen(master_socket, 3) < 0)
-    {
+    if (listen(master_socket, 3) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -213,62 +206,53 @@ int main(int argc , char *argv[])
     addrlen = sizeof(address);
     puts("Waiting for connections ...");
 
-    while(TRUE)
-    {
+    while(TRUE) {
         FD_ZERO(&readfds);
         FD_SET(master_socket, &readfds);
 
         max_sd = master_socket;
 
-        for ( i = 0 ; i < MAX_FD ; i++)
-        {
+        for ( i = 0 ; i < MAX_FD ; i++) {
             sd = client_socket[i].fd;
 
             if(sd > 0)
-                FD_SET( sd , &readfds);
+                FD_SET( sd, &readfds);
 
             if(sd > max_sd)
                 max_sd = sd;
         }
 
 
-        activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+        activity = select( max_sd + 1, &readfds, NULL, NULL, NULL);
 
-        if ((activity < 0) && (errno!=EINTR))
-        {
+        if ((activity < 0) && (errno!=EINTR)) {
             printf("select error");
         }
 
 
-        if (FD_ISSET(master_socket, &readfds))
-        {
-            if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
-            {
+        if (FD_ISSET(master_socket, &readfds)) {
+            if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
 
 
-            printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+            printf("New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
-            for (i = 0; i < MAX_FD; i++)
-            {
+            for (i = 0; i < MAX_FD; i++) {
                 //if position is empty
-                if( client_socket[i].fd == 0 )
-                {
+                if( client_socket[i].fd == 0 ) {
                     client_socket[i].fd = new_socket;
-                    printf("Adding to list of sockets as %d\n" , i);
+                    printf("Adding to list of sockets as %d\n", i);
                     break;
                 }
             }
         }
 
-        for (i = 0; i < MAX_FD; i++)
-        {
+        for (i = 0; i < MAX_FD; i++) {
             sd = client_socket[i].fd;
 
-            if (FD_ISSET( sd , &readfds))
-            {
+            if (FD_ISSET( sd, &readfds)) {
                 client_handler(&client_socket[i]);
             }
         }

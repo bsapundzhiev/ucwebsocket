@@ -28,21 +28,6 @@
 
 #define MASK_LEN 4
 
-void ws_http_header_free(struct http_header *header)
-{
-    if(header->method) {
-        free(header->method);
-    }
-
-    if(header->uri) {
-        free(header->uri);
-    }
-
-    if(header->key) {
-        free(header->key);
-    }
-}
-
 static int http_header_readline(char *in, char *buf, int len)
 {
     char *ptr = buf;
@@ -93,7 +78,8 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
     }
 
     if (!strcmp(WS_HDR_KEY, header_name)) {
-        header->key = strdup(header_content);
+        //header->key = strdup(header_content);
+        memcpy(&header->key, header_content, sizeof(header->key));
     }
 
     *p = ':';
@@ -102,23 +88,23 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
 
 void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len)
 {
-    char header_line[256];
+    char *header_line = (char*)in_buf;
     char *token = NULL;
     int res, count =0;
 
-    header->method= NULL;
-    header->uri = NULL;
     header->type = WS_ERROR_FRAME;
 
-    while ((res = http_header_readline((char*)in_buf, header_line, sizeof(header_line))) > 0) {
+    while ((res = http_header_readline((char*)in_buf, header_line, in_len -2)) > 0) {
         if (!count) {
             token = strtok(header_line, " ");
             if(token) {
-                header->method = strdup(token);
+                //header->method = strdup(token);
+                memcpy(&header->method, token, sizeof(header->method));
             }
             token = strtok(NULL, " ");
             if(token) {
-                header->uri = strdup(token);
+                //header->uri = strdup(token);
+                memcpy(&header->uri, token, sizeof(header->uri));
             }
 
         } else {

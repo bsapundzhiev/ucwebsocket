@@ -72,7 +72,7 @@ char * base64_encode(const unsigned char *src, size_t len,
             *pos++ = '=';
         } else {
             *pos++ = base64_table[((in[0] & 0x03) << 4) |
-                                  (in[1] >> 4)];
+                                                  (in[1] >> 4)];
             *pos++ = base64_table[(in[1] & 0x0f) << 2];
         }
         *pos++ = '=';
