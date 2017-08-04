@@ -18,7 +18,7 @@ extern "C" {
 #include <stddef.h>
 #include "base64.h"
 #include "sha1.h"
-#include "wshandshake.h"
+
 
 #define WS_VERSION 13
 #define WS_WEBSOCK "websocket"

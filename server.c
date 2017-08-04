@@ -12,7 +12,7 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
-typedef SSIZE_T ssize_t;
+
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -21,6 +21,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "websocket.h"
+#include "wshandshake.h"
 
 #define TRUE   1
 #define FALSE  0
@@ -35,7 +36,7 @@ struct fds {
     enum wsState state;
     struct http_header hdr; //= {NULL, NULL, NULL, 0, 0};
     struct ws_frame fr;
-    ssize_t readed;
+    int readed;
     int readedLength;
 };
 
@@ -43,7 +44,7 @@ struct fds client_socket[MAX_FD];
 
 int send_buff(int csocket, const uint8_t *buffer, size_t bufferSize)
 {
-    ssize_t written = send(csocket, buffer, bufferSize, 0);
+    int written = send(csocket,(char*)buffer, bufferSize, 0);
 
     if (written == -1) {
         close(csocket);
@@ -78,11 +79,10 @@ void client_close(struct fds * client)
 
 void client_handler(struct fds *client)
 {
-
     int frameSize = BUF_LEN;
 
     if(!client->readedLength) {
-        client->readedLength = recv(client->fd, client->buffer, BUF_LEN, 0);
+        client->readedLength = recv(client->fd, (char*)client->buffer, BUF_LEN, 0);
     }
 
     if (!client->readedLength) {
