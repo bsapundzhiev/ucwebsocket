@@ -129,7 +129,7 @@ void client_handler(struct fds *client)
             client->fr.payload[client->fr.payload_length] = 0;
 
             printf("Payload '%s'\n", client->fr.payload);
-            printf("make frame '%s' len %d \n", client->fr.payload, client->fr.payload_length);
+            printf("make frame '%s' len %lld \n", client->fr.payload, client->fr.payload_length);
 
             ws_create_text_frame((char*)client->fr.payload, client->buffer, &frameSize);
             if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {
@@ -167,8 +167,18 @@ int main(int argc, char *argv[])
     int master_socket, addrlen, new_socket, activity, i, sd;
     int max_sd;
     struct sockaddr_in address;
-
-    fd_set readfds;
+	fd_set readfds;
+#ifdef _WIN32
+	char enable = 1;
+	WSADATA wsaData = { 0 };
+	int iResult = 0;
+	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+		wprintf(L"WSAStartup failed: %d\n", iResult);
+		return 1;
+	}
+#endif
+    
 
     for (i = 0; i < MAX_FD; i++) {
         client_socket[i].fd = 0;

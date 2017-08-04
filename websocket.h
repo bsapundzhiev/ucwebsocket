@@ -15,16 +15,10 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include "base64.h"
 #include "sha1.h"
-
-#define WS_HDR_KEY "Sec-WebSocket-Key"
-#define WS_HDR_VER "Sec-WebSocket-Version"
-#define WS_HDR_ACP "Sec-WebSocket-Accept"
-#define WS_HDR_ORG "Origin"
-#define WS_HDR_HST "Host"
-#define WS_HDR_UPG "Upgrade"
-#define WS_HDR_CON "Connection"
+#include "wshandshake.h"
 
 #define WS_VERSION 13
 #define WS_WEBSOCK "websocket"
@@ -49,16 +43,6 @@ enum wsState {
 	CLOSED =	3,	/*The connection is closed or couldn't be opened.*/
 };
 
-struct http_header {
-  char method[4];
-  char uri[128];
-  char key[32];
-  unsigned char version;
-  unsigned char upgrade;
-  unsigned char websocket;
-  enum wsFrameType type;
-};
-
 struct ws_frame {
     uint8_t fin;
     uint8_t rsv1;
@@ -66,12 +50,9 @@ struct ws_frame {
     uint8_t rsv3;
     uint8_t opcode;
     uint8_t *payload;
-    int payload_length;
+    uint64_t payload_length;
 	enum wsFrameType type;
 };
-
-void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len);
-void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int *out_len);
 
 void ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len);
 void ws_create_frame(struct ws_frame *frame, uint8_t *out_data, int *out_len);

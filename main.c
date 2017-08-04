@@ -85,7 +85,7 @@ void client_handler(int csocket)
             if (hdr.type != WS_OPENING_FRAME) {
                 send_buff(csocket, buffer, frameSize);
                 close(csocket);
-                ws_http_header_free(&hdr);
+              
                 return;
             } else {
 
@@ -96,7 +96,7 @@ void client_handler(int csocket)
                     break;
                 }
 
-                ws_http_header_free(&hdr);
+               
                 if (send_buff(csocket, buffer, frameSize) == EXIT_FAILURE) {
                     return;
                 }
