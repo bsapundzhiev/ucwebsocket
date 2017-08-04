@@ -9,9 +9,9 @@
  *
  */
 #ifndef __UCWEBSOCKET_H
-#define	__UCWEBSOCKET_H
+#define __UCWEBSOCKET_H
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -37,10 +37,10 @@ enum wsFrameType {
 };
 
 enum wsState {
-	CONNECTING = 	0,	/*The connection is not yet open.*/
-	OPEN = 		1,	/*The connection is open and ready to communicate.*/
-	CLOSING =	2,	/*The connection is in the process of closing.*/
-	CLOSED =	3,	/*The connection is closed or couldn't be opened.*/
+    CONNECTING = 0,  /*The connection is not yet open.*/
+    OPEN =       1,  /*The connection is open and ready to communicate.*/
+    CLOSING =    2,  /*The connection is in the process of closing.*/
+    CLOSED =     3,  /*The connection is closed or couldn't be opened.*/
 };
 
 struct ws_frame {
@@ -51,7 +51,7 @@ struct ws_frame {
     uint8_t opcode;
     uint8_t *payload;
     uint64_t payload_length;
-	enum wsFrameType type;
+    enum wsFrameType type;
 };
 
 void ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len);
@@ -60,8 +60,8 @@ void ws_create_closing_frame(uint8_t *out_data, int *out_len);
 void ws_create_text_frame(const char *text, uint8_t *out_data, int *out_len);
 void ws_create_control_frame(enum wsFrameType type, const uint8_t *data, int data_len, uint8_t *out_data, int *out_len);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* __UCWEBSOCKET_H */
+#endif /* __UCWEBSOCKET_H */

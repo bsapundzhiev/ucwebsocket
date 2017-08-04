@@ -36,9 +36,9 @@ void ws_create_frame(struct ws_frame *frame, uint8_t *out_data, int *out_len)
         out_data[3] = (uint8_t)( frame->payload_length      ) & 0xFF;
         *out_len = 4;
     } else {
-		assert(0);  
-		out_data[1] = 0x7F;  
-		out_data[2] = (uint8_t)( frame->payload_length >> 56 ) & 0xFF;
+        //assert(0);  
+        out_data[1] = 0x7F;  
+        out_data[2] = (uint8_t)( frame->payload_length >> 56 ) & 0xFF;
         out_data[3] = (uint8_t)( frame->payload_length >> 48 ) & 0xFF;
         out_data[4] = (uint8_t)( frame->payload_length >> 40 ) & 0xFF;
         out_data[5] = (uint8_t)( frame->payload_length >> 32 ) & 0xFF;
@@ -104,19 +104,19 @@ void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
     } else if (payloadLength == 0x7E) {
         // 2 bytes extended payload length
         byte_count =  2;
-	}
+    }
 
     byte_count += first_count;
 
-	//TODO: fix len > 255
+    //TODO: fix len > 255
     if (byte_count > 2) {
         payloadLength = data[first_count];
         for(i = first_count; i < byte_count; i++) {
-			payloadLength |= data[i];
+            payloadLength |= data[i];
         }
     }
 
-	printf("payloadLength %d len %d\n", payloadLength, len - (byte_count + MASK_LEN));
+    printf("payloadLength %d len %d\n", payloadLength, len - (byte_count + MASK_LEN));
     assert(payloadLength ==  len - (byte_count + MASK_LEN));
     if ((payloadLength + byte_count + MASK_LEN) != len) {
         frame->type = WS_INCOMPLETE_FRAME;
