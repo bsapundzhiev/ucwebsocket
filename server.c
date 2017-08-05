@@ -129,7 +129,7 @@ void client_handler(struct fds *client)
             client->fr.payload[client->fr.payload_length] = 0;
 
             printf("Payload '%s'\n", client->fr.payload);
-            printf("make frame '%s' len %lld \n", client->fr.payload, client->fr.payload_length);
+            printf("make frame '%s' len %lu \n", client->fr.payload, client->fr.payload_length);
 
             ws_create_text_frame((char*)client->fr.payload, client->buffer, &frameSize);
             if (send_buff(client->fd, client->buffer, frameSize) == EXIT_FAILURE) {

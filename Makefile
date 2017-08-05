@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-c -g -Wall -I ../lib
 LDFLAGS=
-SOURCES=server.c websocket.c base64.c sha1.c
+SOURCES=server.c websocket.c wshandshake.c base64.c sha1.c
 
 
 OBJECTS=$(SOURCES:.c=.o)

@@ -108,16 +108,18 @@ void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
 
     byte_count += first_count;
 
-    //TODO: fix len > 255
     if (byte_count > 2) {
-        payloadLength = data[first_count];
-        for(i = first_count; i < byte_count; i++) {
-            payloadLength |= data[i];
+
+        payloadLength = data[byte_count - 1];
+
+        for (i = byte_count - 2; i >= first_count; i--) {
+        	uint8_t bytenum = i - first_count + 1;
+            payloadLength |= (data[i] << 8 * bytenum);
         }
     }
 
-    printf("payloadLength %d len %d\n", payloadLength, len - (byte_count + MASK_LEN));
     assert(payloadLength ==  len - (byte_count + MASK_LEN));
+    
     if ((payloadLength + byte_count + MASK_LEN) != len) {
         frame->type = WS_INCOMPLETE_FRAME;
         return;
