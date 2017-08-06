@@ -33,8 +33,7 @@ struct http_header {
     enum wsFrameType type;
 };
 
-void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len);
-void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int *out_len);
+int ws_handshake(struct http_header *header, uint8_t *in_buf, int in_len, int *out_len);
 
 #ifdef __cplusplus
 }

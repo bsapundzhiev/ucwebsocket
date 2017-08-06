@@ -81,7 +81,7 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
     return 0;
 }
 
-void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len)
+static void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len)
 {
     char *header_line = (char*)in_buf;
     char *token = NULL;
@@ -136,7 +136,7 @@ static int ws_make_accept_key(const char* key, char *out_key, size_t *out_len)
     return *out_len;
 }
 
-void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int *out_len)
+static void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int *out_len)
 {
     int written = 0;
     char new_key[64] = { '\0' };
@@ -162,4 +162,12 @@ void ws_get_handshake_header(struct http_header *header, uint8_t *out_buff, int 
     }
     assert(written <= *out_len);
     *out_len = written;
+}
+
+int ws_handshake(struct http_header *header, uint8_t *in_buf, int in_len, int *out_len)
+{
+    ws_http_parse_handsake_header(header, in_buf, in_len);
+    ws_get_handshake_header(header, in_buf, out_len);
+
+    return 0;
 }

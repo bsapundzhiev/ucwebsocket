@@ -8,3 +8,9 @@ test
 /ucwebsocket.vcxproj.user
 /Debug/
 *.out
+
+/client/bin/
+/client/obj/
+/client/.vscode/
+/client/project.lock.json
+*.pro.user

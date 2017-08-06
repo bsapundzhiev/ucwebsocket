@@ -34,7 +34,6 @@ struct fds {
     int fd;
     uint8_t buffer[BUF_LEN];
     enum wsState state;
-    struct http_header hdr; //= {NULL, NULL, NULL, 0, 0};
     struct ws_frame fr;
     int readed;
     int readedLength;
@@ -94,19 +93,19 @@ void client_handler(struct fds *client)
     assert(client->readedLength <= BUF_LEN);
 
     switch(client->state) {
-    case CONNECTING:
+    case CONNECTING: {
 
-        ws_http_parse_handsake_header(&client->hdr, client->buffer, client->readedLength);
-        ws_get_handshake_header(&client->hdr, client->buffer, &frameSize);
+        struct http_header hdr;
+        ws_handshake(&hdr, client->buffer, client->readedLength,  &frameSize);
 
-        if (client->hdr.type != WS_OPENING_FRAME) {
+        if (hdr.type != WS_OPENING_FRAME) {
             send_buff(client->fd, client->buffer, frameSize);
             client_close(client);
 
             return;
         } else {
 
-            if (strcmp(client->hdr.uri, "/echo") != 0) {
+            if (strcmp(hdr.uri, "/echo") != 0) {
                 frameSize = sprintf((char *)client->buffer, "HTTP/1.1 404 Not Found\r\n\r\n");
                 send_buff(client->fd, client->buffer, frameSize);
                 client->state = CLOSING;
@@ -119,7 +118,8 @@ void client_handler(struct fds *client)
             client->state = OPEN;
             client->readedLength = 0;
         }
-        break;
+    }
+    break;
 
     case OPEN:
         ws_parse_frame(&client->fr, client->buffer, client->readedLength);
