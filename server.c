@@ -28,7 +28,7 @@
 #define PORT 8088
 #define BUF_LEN  1024
 
-#define MAX_FD	1024
+#define MAX_FD	512
 
 struct fds {
     int fd;
@@ -138,6 +138,17 @@ void client_handler(struct fds *client)
             }
             client->readedLength = 0;
         }
+
+        if (client->fr.type == WS_BINARY_FRAME) {
+            unsigned int i;
+            for(i=0; i < client->fr.payload_length; i++) {
+                printf(" 0x%x", client->fr.payload[i]);
+            }
+            printf("\n");
+
+            client->readedLength = 0;
+        }
+
         if(client->fr.type == WS_CLOSING_FRAME) {
             client->state = CLOSING;
         }
@@ -167,18 +178,17 @@ int main(int argc, char *argv[])
     int master_socket, addrlen, new_socket, activity, i, sd;
     int max_sd;
     struct sockaddr_in address;
-	fd_set readfds;
+    fd_set readfds;
 #ifdef _WIN32
-	char enable = 1;
-	WSADATA wsaData = { 0 };
-	int iResult = 0;
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		wprintf(L"WSAStartup failed: %d\n", iResult);
-		return 1;
-	}
+    WSADATA wsaData = { 0 };
+    int iResult = 0;
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed: %d\n", iResult);
+        return 1;
+    }
 #endif
-    
+
 
     for (i = 0; i < MAX_FD; i++) {
         client_socket[i].fd = 0;

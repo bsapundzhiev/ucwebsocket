@@ -82,6 +82,10 @@
                 var msg = "The quick brown fox jumps over the lazy dog";
                 WebSocketClient.sendMessage(msg);
                 console.log("Message is sent: " + msg);
+
+                var u8array = new Uint8Array([0xFF, 0xFF, 0xFF, 0xFF]);
+                WebSocketClient.sendMessage(u8array);
+                console.log("Message is sent: " + u8array);
             }
 
             WebSocketClient.onMessage = function(msg) {

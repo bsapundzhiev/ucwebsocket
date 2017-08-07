@@ -58,6 +58,7 @@ void ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len);
 void ws_create_frame(struct ws_frame *frame, uint8_t *out_data, int *out_len);
 void ws_create_closing_frame(uint8_t *out_data, int *out_len);
 void ws_create_text_frame(const char *text, uint8_t *out_data, int *out_len);
+void ws_create_binary_frame(const uint8_t *data, uint16_t datalen, uint8_t *out_data, int *out_len);
 void ws_create_control_frame(enum wsFrameType type, const uint8_t *data, int data_len, uint8_t *out_data, int *out_len);
 
 #ifdef __cplusplus

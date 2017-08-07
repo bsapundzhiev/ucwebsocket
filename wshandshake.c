@@ -30,17 +30,14 @@ static int http_header_readline(char *in, char *buf, int len)
         if (*ptr != '\0') {
             if (*ptr == '\r') {
                 continue;
-            }
-            else if (*ptr == '\n') {
+            } else if (*ptr == '\n') {
                 *ptr = '\0';
                 return ptr - buf;
-            }
-            else {
+            } else {
                 ptr++;
                 continue;
             }
-        }
-        else {
+        } else {
             *ptr = '\0';
             return ptr - buf;
         }
@@ -63,7 +60,6 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
         header_content++;
     } while (*header_content == ' ');
 
-    //Connection: Upgrade
     if (!strcmp(WS_HDR_UPG, header_name)) {
         header->upgrade = !strcmp(WS_WEBSOCK, header_content);
     }
@@ -73,7 +69,7 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
     }
 
     if (!strcmp(WS_HDR_KEY, header_name)) {
-        
+
         memcpy(&header->key, header_content, sizeof(header->key));
     }
 
@@ -81,29 +77,37 @@ static int http_parse_headers(struct http_header *header, const char *hdr_line)
     return 0;
 }
 
+static int http_parse_request_line(struct http_header *header, const char *hdr_line)
+{
+    char *line = (char*)hdr_line;
+    char *token = strtok(line, " ");
+
+    if (token) {
+        memcpy(&header->method, token, sizeof(header->method));
+    }
+
+    token = strtok(NULL, " ");
+
+    if (token) {
+        memcpy(&header->uri, token, sizeof(header->uri));
+    }
+
+    return 0;
+}
+
 static void ws_http_parse_handsake_header(struct http_header *header, uint8_t *in_buf, int in_len)
 {
     char *header_line = (char*)in_buf;
-    char *token = NULL;
     int res, count = 0;
 
     header->type = WS_ERROR_FRAME;
 
     while ((res = http_header_readline((char*)in_buf, header_line, in_len - 2)) > 0) {
-        if (!count) {
-            token = strtok(header_line, " ");
-            if (token) {
-                
-                memcpy(&header->method, token, sizeof(header->method));
-            }
-            token = strtok(NULL, " ");
-            if (token) {
-                
-                memcpy(&header->uri, token, sizeof(header->uri));
-            }
 
-        }
-        else {
+        if (!count) {
+            http_parse_request_line(header, header_line);
+        } else {
+
             http_parse_headers(header, header_line);
         }
         count++;
@@ -145,20 +149,19 @@ static void ws_get_handshake_header(struct http_header *header, uint8_t *out_buf
     if (header->type == WS_OPENING_FRAME) {
         ws_make_accept_key(header->key, new_key, &len);
         written = snprintf((char *)out_buff, *out_len,
-            "HTTP/1.1 101 Switching Protocols\r\n"
-            "%s: %s\r\n"
-            "%s: %s\r\n"
-            "%s: %s\r\n\r\n",
-            WS_HDR_UPG, WS_WEBSOCK,
-            WS_HDR_CON, WS_HDR_UPG,
-            WS_HDR_ACP, new_key);
-    }
-    else {
+                           "HTTP/1.1 101 Switching Protocols\r\n"
+                           "%s: %s\r\n"
+                           "%s: %s\r\n"
+                           "%s: %s\r\n\r\n",
+                           WS_HDR_UPG, WS_WEBSOCK,
+                           WS_HDR_CON, WS_HDR_UPG,
+                           WS_HDR_ACP, new_key);
+    } else {
         written = snprintf((char *)out_buff, *out_len,
-            "HTTP/1.1 400 Bad Request\r\n"
-            "%s: %d\r\n\r\n"
-            "Bad request",
-            WS_HDR_VER, WS_VERSION);
+                           "HTTP/1.1 400 Bad Request\r\n"
+                           "%s: %d\r\n\r\n"
+                           "Bad request",
+                           WS_HDR_VER, WS_VERSION);
     }
     assert(written <= *out_len);
     *out_len = written;

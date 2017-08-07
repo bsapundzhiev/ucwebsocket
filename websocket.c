@@ -36,8 +36,8 @@ void ws_create_frame(struct ws_frame *frame, uint8_t *out_data, int *out_len)
         out_data[3] = (uint8_t)( frame->payload_length      ) & 0xFF;
         *out_len = 4;
     } else {
-        //assert(0);  
-        out_data[1] = 0x7F;  
+        //assert(0);
+        out_data[1] = 0x7F;
         out_data[2] = (uint8_t)( frame->payload_length >> 56 ) & 0xFF;
         out_data[3] = (uint8_t)( frame->payload_length >> 48 ) & 0xFF;
         out_data[4] = (uint8_t)( frame->payload_length >> 40 ) & 0xFF;
@@ -74,7 +74,7 @@ static int ws_parse_opcode(struct ws_frame *frame)
 void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
 {
     int masked = 0;
-    uint32_t payloadLength;
+    int payloadLength;
     int byte_count = 0;
     int first_count = 2, i;
     uint8_t maskingKey[MASK_LEN];
@@ -113,13 +113,13 @@ void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
         payloadLength = data[byte_count - 1];
 
         for (i = byte_count - 2; i >= first_count; i--) {
-        	uint8_t bytenum = i - first_count + 1;
+            uint8_t bytenum = i - first_count + 1;
             payloadLength |= (data[i] << 8 * bytenum);
         }
     }
 
     assert(payloadLength ==  len - (byte_count + MASK_LEN));
-    
+
     if ((payloadLength + byte_count + MASK_LEN) != len) {
         frame->type = WS_INCOMPLETE_FRAME;
         return;
@@ -137,8 +137,9 @@ void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
     frame->payload_length = payloadLength;
 
     if (masked) {
-        for (i = 0; i < frame->payload_length; i++) {
-            frame->payload[i] ^= maskingKey[i % MASK_LEN];
+        uint64_t len;
+        for (len = 0; len < frame->payload_length; len++) {
+            frame->payload[len] ^= maskingKey[len % MASK_LEN];
         }
     }
 }
@@ -161,6 +162,15 @@ void ws_create_text_frame(const char *text, uint8_t *out_data, int *out_len)
     ws_create_frame(&frame, out_data, out_len);
 }
 
+void ws_create_binary_frame(const uint8_t *data,uint16_t datalen, uint8_t *out_data, int *out_len)
+{
+    struct ws_frame frame;
+    frame.payload_length = datalen;
+    frame.payload = (uint8_t*)data;
+    frame.type = WS_BINARY_FRAME;
+    ws_create_frame(&frame, out_data, out_len);
+}
+
 void ws_create_control_frame(enum wsFrameType type, const uint8_t *data, int data_len, uint8_t *out_data, int *out_len)
 {
     struct ws_frame frame;
@@ -169,3 +179,4 @@ void ws_create_control_frame(enum wsFrameType type, const uint8_t *data, int dat
     frame.type = type;
     ws_create_frame(&frame, out_data, out_len);
 }
+
