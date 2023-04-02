@@ -12,7 +12,7 @@ namespace ConsoleApplication
             _wsclient = new WsClient(this);
         }
 
-        public Task ConnectTo(string wsurl)
+        public  Task ConnectTo(string wsurl)
         {
             return _wsclient.ConnectAsync(wsurl);
         }

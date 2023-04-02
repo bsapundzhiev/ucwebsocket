@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ConsoleApplication
 {
@@ -10,7 +12,6 @@ namespace ConsoleApplication
 
             var chatClient = new ChatClient();
             chatClient.ConnectTo("ws://localhost:8088/echo").Wait();
-
         }
 
     }

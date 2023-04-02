@@ -10,64 +10,53 @@ namespace ConsoleApplication
 {
     public class WsClient
     {
-        private ClientWebSocket _socket;
+        private ClientWebSocket _wsocket;
         private CancellationTokenSource _cts;
-	private IWSClient _client;
-        
-	public bool IsConnected { get; set;}
-
-        
+	    private IWSClient _client;
+	    public bool IsConnected { get; set;} 
         public WsClient(IWSClient client)
         {
             IsConnected = false;
-            _socket = new ClientWebSocket();
+            _wsocket = new ClientWebSocket();
             _cts = new CancellationTokenSource();
             _client = client;
         }
-
-        public Task ConnectAsync(string wsUri)
+        public async Task ConnectAsync(string wsUri)
         {
-            return Task.Run(async ()=>
+            var connectTask = _wsocket.ConnectAsync(new Uri(wsUri), _cts.Token);
+
+            try
             {
-                var connectTask = _socket.ConnectAsync(new Uri(wsUri), _cts.Token);
-
-                try
+                connectTask.Wait();
+                if (connectTask.IsFaulted)
                 {
-                    connectTask.Wait();
-                    if (connectTask.IsFaulted)
-                    {
-                        _client.OnClose();
-                    }
-                    else
-                    {
-                        await StartMessageLoopAsync();
-                        _client.OnConnect();
-                    }
+                    _client.OnClose();
                 }
-                catch (AggregateException ae)
+                else
                 {
-                    ae.Handle((x) =>
-                    {
-                        _client.OnError(x.Message);
-                        return true;
-                    });
+                    await StartMessageLoopAsync();
+                    _client.OnConnect();
                 }
-            });
+            }
+            catch (AggregateException ae)
+            {
+                ae.Handle((x) =>
+                {
+                    _client.OnError(x.Message);
+                    return true;
+                });
+            }
         }
-
         public  Task StartMessageLoopAsync()
         {
             return Task.Factory.StartNew(async () =>
             {
                 Console.WriteLine("task receive");
-                var rcvBytes = new byte[128];
-                var rcvBuffer = new ArraySegment<byte>(rcvBytes);
-                while (true)
+                var rcvBuffer = new ArraySegment<byte>(new byte[128]);
+                while (_wsocket.State == WebSocketState.Open)
                 {
-                    WebSocketReceiveResult rcvResult = await _socket.ReceiveAsync(rcvBuffer, _cts.Token);
-                    byte[] msgBytes = rcvBuffer
-                                    .Skip(rcvBuffer.Offset)
-                                    .Take(rcvResult.Count).ToArray();
+                    WebSocketReceiveResult rcvResult = await _wsocket.ReceiveAsync(rcvBuffer, _cts.Token);
+                    byte[] msgBytes = rcvBuffer.Skip(rcvBuffer.Offset).Take(rcvResult.Count).ToArray();
                     string rcvMsg = Encoding.UTF8.GetString(msgBytes);
                     _client.OnMessage(rcvMsg);
                 }
@@ -81,7 +70,7 @@ namespace ConsoleApplication
         {
             byte[] sendBytes = Encoding.UTF8.GetBytes(message);
             var sendBuffer = new ArraySegment<byte>(sendBytes);
-            await _socket.SendAsync(
+            await _wsocket.SendAsync(
                 sendBuffer,
                 WebSocketMessageType.Text,
                 endOfMessage: true,

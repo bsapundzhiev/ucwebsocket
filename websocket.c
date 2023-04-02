@@ -157,7 +157,7 @@ void ws_create_text_frame(const char *text, uint8_t *out_data, int *out_len)
 {
     struct ws_frame frame;
     frame.payload_length = strlen(text);
-    frame.payload = (uint8_t*)text;
+    frame.payload = (uint8_t *)text;
     frame.type = WS_TEXT_FRAME;
     ws_create_frame(&frame, out_data, out_len);
 }
@@ -166,7 +166,7 @@ void ws_create_binary_frame(const uint8_t *data,uint16_t datalen, uint8_t *out_d
 {
     struct ws_frame frame;
     frame.payload_length = datalen;
-    frame.payload = (uint8_t*)data;
+    frame.payload = (uint8_t *)data;
     frame.type = WS_BINARY_FRAME;
     ws_create_frame(&frame, out_data, out_len);
 }
@@ -175,7 +175,7 @@ void ws_create_control_frame(enum wsFrameType type, const uint8_t *data, int dat
 {
     struct ws_frame frame;
     frame.payload_length = data_len;
-    frame.payload = (uint8_t*)data;
+    frame.payload = (uint8_t *)data;
     frame.type = type;
     ws_create_frame(&frame, out_data, out_len);
 }

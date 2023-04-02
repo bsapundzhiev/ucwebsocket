@@ -26,9 +26,9 @@
 #define TRUE   1
 #define FALSE  0
 #define PORT 8088
-#define BUF_LEN  1024
+#define BUF_LEN  512
 
-#define MAX_FD	512
+#define MAX_FD	1024
 
 struct fds {
     int fd;
