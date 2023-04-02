@@ -18,13 +18,16 @@
     <ClCompile Include="base64.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sha1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="websocket.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="server.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wshandshake.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

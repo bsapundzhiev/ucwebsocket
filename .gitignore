@@ -3,10 +3,9 @@ websocket
 test
 /wsocket
 *.o
-/ucwebsocket.suo
-/ucwebsocket.vcxproj.filters
-/ucwebsocket.vcxproj.user
+/.vs/
 /Debug/
+/Release/
 *.out
 
 /client/bin/
@@ -14,3 +13,4 @@ test
 /client/.vscode/
 /client/project.lock.json
 *.pro.user
+/ucwebsocket.vcxproj.user
