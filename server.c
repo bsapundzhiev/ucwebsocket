@@ -123,8 +123,12 @@ void client_handler(struct fds *client)
 
     case OPEN:
         ws_parse_frame(&client->fr, client->buffer, client->readedLength);
-        printf("fr.type 0x%X\n", client->fr.type);
-
+        printf("received fr.type 0x%X\n", client->fr.type);
+        if (client->fr.type == WS_ERROR_FRAME)
+        {
+          printf("Error or reserved frame received...");
+          client->readedLength = 0;
+        }
         if (client->fr.type == WS_TEXT_FRAME) {
             client->fr.payload[client->fr.payload_length] = 0;
 

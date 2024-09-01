@@ -64,14 +64,14 @@ static int ws_parse_opcode(struct ws_frame *frame)
         frame->type = frame->opcode;
         break;
     default:
-        frame->type = WS_ERROR_FRAME;
+        frame->type = WS_ERROR_FRAME; //Reserved frames are also treated as errors
         break;
     }
 
     return frame->type;
 }
 
-void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
+void ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
 {
     int masked = 0;
     int payloadLength;
@@ -132,7 +132,7 @@ void  ws_parse_frame(struct ws_frame *frame, uint8_t *data, int len)
         }
     }
 
-    // TODO: add masked + maskingkey validation here
+    // TODO: add masked + masking key validation here
     frame->payload = &data[byte_count + MASK_LEN];
     frame->payload_length = payloadLength;
 
